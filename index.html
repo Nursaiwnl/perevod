@@ -3814,17 +3814,8 @@ function updateLeaderboardUI() {
     endPlayerName.textContent = playerName;
     
     // Запрашиваем токен при первом сохранении
-    if (!localStorage.getItem('github_token')) {
-        const token = prompt('Для сохранения результата введите GitHub токен (Settings > Developer settings > Personal access tokens):');
-        if (token) localStorage.setItem('github_token', token);
-    }
-    
-    if (localStorage.getItem('github_token')) {
-        await saveScore(playerName, score);
-        await loadLeaderboard();
-    } else {
-        updateLeaderboardUI(); // Показываем локальный лидерборд
-    }
+   await saveScore(playerName, score);
+await loadLeaderboard();
 }
 
 // Загружаем лидерборд при запуске

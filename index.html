@@ -3604,7 +3604,7 @@
         
         const GITHUB_USER = 'nursaiwnl';
 const REPO = 'perevod'; // Замените на название репозитория
-        const API_BASE = 'https://leaderboard-server-6tfz.onrender.com; 
+        const API_BASE = 'https://leaderboard-server-6tfz.onrender.com'; 
 
 const LEADERBOARD_FILE = 'leaderboard.json';
 let leaderboard = [];
@@ -3625,7 +3625,7 @@ async function loadLeaderboard() {
 // Функция для сохранения результата
 async function saveScore(name, score) {
     try {
-        await fetch('https://leaderboard-server-6tfz.onrender.com, {
+        await fetch('https://leaderboard-server-6tfz.onrender.com', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, score })

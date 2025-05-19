@@ -3809,7 +3809,15 @@ function updateLeaderboardUI() {
         function updateScore() { scoreDisplay.textContent = score; }
 
         async function endGame() {
+    clearInterval(timer); // Остановить таймер на всякий случай
     playSound('gameOver');
+    
+    // Сохраняем результат
+    if (playerName && score > 0) {
+        await saveScore(playerName, score);
+        await loadLeaderboard(); // Обновляем лидерборд после сохранения
+    }
+    
     gameScreen.classList.remove('active');
     endScreen.classList.add('active');
     finalScoreDisplay.textContent = score;

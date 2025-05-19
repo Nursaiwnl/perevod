@@ -3577,6 +3577,92 @@
                 }
             ];
         
+        const GITHUB_USER = 'nursaiwnl'; // Замените на ваш логин
+const REPO = 'perevod'; // Замените на название репозитория
+const LEADERBOARD_FILE = 'leaderboard.json';
+let leaderboard = [];
+
+// Функция для загрузки лидерборда с GitHub
+async function loadLeaderboard() {
+    try {
+        const response = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${LEADERBOARD_FILE}`);
+        const data = await response.json();
+        const content = atob(data.content);
+        leaderboard = JSON.parse(content);
+        updateLeaderboardUI();
+    } catch (error) {
+        console.error('Ошибка загрузки лидерборда:', error);
+        leaderboard = [];
+    }
+}
+
+// Функция для сохранения результата
+async function saveScore(name, score) {
+    leaderboard.push({ name, score, date: new Date().toISOString() });
+    leaderboard.sort((a, b) => b.score - a.score);
+    leaderboard = leaderboard.slice(0, 10); // Только топ-10
+    
+    try {
+        // Получаем текущий SHA файла
+        const getResponse = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${LEADERBOARD_FILE}`);
+        const getData = await getResponse.json();
+        
+        // Обновляем файл
+        await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${LEADERBOARD_FILE}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${localStorage.getItem('github_token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: 'Update leaderboard',
+                content: btoa(JSON.stringify(leaderboard, null, 2)),
+                sha: getData.sha
+            })
+        });
+    } catch (error) {
+        console.error('Ошибка сохранения:', error);
+    }
+}
+
+// Функция для отображения лидерборда
+function updateLeaderboardUI() {
+    const leaderboardHTML = document.createElement('div');
+    leaderboardHTML.innerHTML = `
+        <h3>Таблица рекордов</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+            <thead>
+                <tr style="background-color: #4CAF50; color: white;">
+                    <th style="padding: 8px;">Место</th>
+                    <th style="padding: 8px;">Имя</th>
+                    <th style="padding: 8px;">Очки</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${leaderboard.map((player, index) => `
+                    <tr style="border-bottom: 1px solid #ddd; 
+                        ${index < 3 ? `background-color: ${['#fff9c4', '#f5f5f5', '#ffecb3'][index]};` : ''}">
+                        <td style="padding: 8px; text-align: center;">
+                            ${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                        </td>
+                        <td style="padding: 8px;">${player.name}</td>
+                        <td style="padding: 8px; text-align: center;">${player.score}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+    
+    // Добавляем лидерборд на экран окончания игры
+    const endScreen = document.querySelector('.end-screen');
+    const existingLeaderboard = endScreen.querySelector('.leaderboard-container');
+    if (existingLeaderboard) {
+        endScreen.replaceChild(leaderboardHTML, existingLeaderboard);
+    } else {
+        endScreen.appendChild(leaderboardHTML);
+    }
+    leaderboardHTML.className = 'leaderboard-container';
+}
 
         // Звуковые эффекты (замените на свои файлы)
         const sounds = {
@@ -3712,13 +3798,29 @@
 
         function updateScore() { scoreDisplay.textContent = score; }
 
-        function endGame() {
-            playSound('gameOver');
-            gameScreen.classList.remove('active');
-            endScreen.classList.add('active');
-            finalScoreDisplay.textContent = score;
-            endPlayerName.textContent = playerName;
-        }
+        async function endGame() {
+    playSound('gameOver');
+    gameScreen.classList.remove('active');
+    endScreen.classList.add('active');
+    finalScoreDisplay.textContent = score;
+    endPlayerName.textContent = playerName;
+    
+    // Запрашиваем токен при первом сохранении
+    if (!localStorage.getItem('github_token')) {
+        const token = prompt('Для сохранения результата введите GitHub токен (Settings > Developer settings > Personal access tokens):');
+        if (token) localStorage.setItem('github_token', token);
+    }
+    
+    if (localStorage.getItem('github_token')) {
+        await saveScore(playerName, score);
+        await loadLeaderboard();
+    } else {
+        updateLeaderboardUI(); // Показываем локальный лидерборд
+    }
+}
+
+// Загружаем лидерборд при запуске
+loadLeaderboard();
 
         playAgainBtn.addEventListener('click', startGame);
         backToMenuBtn.addEventListener('click', () => {

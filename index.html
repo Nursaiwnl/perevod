@@ -3814,10 +3814,6 @@ function updateLeaderboardUI() {
     endScreen.classList.add('active');
     finalScoreDisplay.textContent = score;
     endPlayerName.textContent = playerName;
-    
-    // Запрашиваем токен при первом сохранении
-   await saveScore(playerName, score);
-await loadLeaderboard();
 }
 
 // Загружаем лидерборд при запуске

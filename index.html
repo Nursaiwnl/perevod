@@ -3716,65 +3716,77 @@ function updateLeaderboardUI() {
             startGame();
         });
 
-        function startGame() {
-            score = 0; lives = 3; currentWordIndex = 0;
-            shuffledWords = [...words].sort(() => Math.random() - 0.5);
-            livesDisplay.querySelectorAll('.heart').forEach(h => h.classList.remove('lost'));
-            startScreen.classList.remove('active');
-            gameScreen.classList.add('active');
-            endScreen.classList.remove('active');
-            playSound('start');
-            updateScore();
-            showNextWord();
-        }
+       function startGame() {
+    playerName = playerNameInput.value.trim();
+    if (!playerName) return alert('Пожалуйста, введите ваше имя');
+    
+    score = 0; 
+    lives = 3; 
+    currentWordIndex = 0;
+    
+    // Перемешиваем массив слов один раз в начале игры
+    shuffledWords = [...words].sort(() => Math.random() - 0.5);
+    
+    livesDisplay.querySelectorAll('.heart').forEach(h => h.classList.remove('lost'));
+    startScreen.classList.remove('active');
+    gameScreen.classList.add('active');
+    endScreen.classList.remove('active');
+    playSound('start');
+    updateScore();
+    showNextWord();
+}
 
         function showNextWord() {
-            if (currentWordIndex >= shuffledWords.length || lives <= 0) return endGame();
-            
-            const currentWord = shuffledWords[currentWordIndex];
-            wordDisplay.textContent = currentWord.word;
-            optionsContainer.innerHTML = '';
-            feedback.textContent = '';
-            
-            currentWord.choices.forEach((choice, i) => {
-                const option = document.createElement('div');
-                option.className = 'option';
-                option.textContent = choice;
-                option.addEventListener('click', () => checkAnswer(i));
-                optionsContainer.appendChild(option);
-            });
-            
-            startTimer();
-        }
+    // Если слова закончились или жизни кончились - завершаем игру
+    if (shuffledWords.length === 0 || lives <= 0) return endGame();
+    
+    // Берем первое слово из перемешанного массива
+    const currentWord = shuffledWords[0];
+    wordDisplay.textContent = currentWord.word;
+    optionsContainer.innerHTML = '';
+    feedback.textContent = '';
+    
+    currentWord.choices.forEach((choice, i) => {
+        const option = document.createElement('div');
+        option.className = 'option';
+        option.textContent = choice;
+        option.addEventListener('click', () => checkAnswer(i));
+        optionsContainer.appendChild(option);
+    });
+    
+    startTimer();
+}
 
         function checkAnswer(selectedIndex) {
-            clearInterval(timer);
-            const currentWord = shuffledWords[currentWordIndex];
-            const options = document.querySelectorAll('.option');
-            
-            options.forEach((opt, i) => {
-                if (i === currentWord.correct) opt.classList.add('correct');
-                else if (i === selectedIndex) opt.classList.add('wrong');
-            });
-            
-            if (selectedIndex === currentWord.correct) {
-                score += 3;
-                feedback.textContent = 'Правильно! +3 очка';
-                feedback.className = 'feedback correct-feedback';
-                playSound('correct');
-            } else {
-                score -= 2;
-                lives--;
-                updateLives();
-                feedback.textContent = 'Неправильно! -2 очка и -1 жизнь';
-                feedback.className = 'feedback wrong-feedback';
-                playSound('wrong');
-                if (lives <= 0) return setTimeout(endGame, 1500);
-            }
-            
-            updateScore();
-            setTimeout(() => { currentWordIndex++; showNextWord(); }, 1500);
-        }
+    clearInterval(timer);
+    const currentWord = shuffledWords[0]; // Берем первое слово
+    
+    options.forEach((opt, i) => {
+        if (i === currentWord.correct) opt.classList.add('correct');
+        else if (i === selectedIndex) opt.classList.add('wrong');
+    });
+    
+    if (selectedIndex === currentWord.correct) {
+        score += 3;
+        feedback.textContent = 'Правильно! +3 очка';
+        feedback.className = 'feedback correct-feedback';
+        playSound('correct');
+    } else {
+        score -= 2;
+        lives--;
+        updateLives();
+        feedback.textContent = 'Неправильно! -2 очка и -1 жизнь';
+        feedback.className = 'feedback wrong-feedback';
+        playSound('wrong');
+        if (lives <= 0) return setTimeout(endGame, 1500);
+    }
+    
+    // Удаляем использованное слово из массива
+    shuffledWords.shift();
+    
+    updateScore();
+    setTimeout(showNextWord, 1500);
+}
 
         function startTimer() {
             timeRemaining = 60;
@@ -3788,17 +3800,21 @@ function updateLeaderboardUI() {
             }, 1000);
         }
 
-        function timeOut() {
-            clearInterval(timer);
-            score -= 2;
-            lives--;
-            updateLives();
-            document.querySelectorAll('.option')[shuffledWords[currentWordIndex].correct].classList.add('correct');
-            feedback.textContent = 'Время вышло! -2 очка и -1 жизнь';
-            feedback.className = 'feedback wrong-feedback';
-            if (lives <= 0) setTimeout(endGame, 1500);
-            else setTimeout(() => { currentWordIndex++; showNextWord(); }, 1500);
-        }
+       function timeOut() {
+    clearInterval(timer);
+    score -= 2;
+    lives--;
+    updateLives();
+    document.querySelectorAll('.option')[shuffledWords[0].correct].classList.add('correct');
+    feedback.textContent = 'Время вышло! -2 очка и -1 жизнь';
+    feedback.className = 'feedback wrong-feedback';
+    
+    // Удаляем использованное слово из массива
+    shuffledWords.shift();
+    
+    if (lives <= 0) setTimeout(endGame, 1500);
+    else setTimeout(showNextWord, 1500);
+}
 
         function updateLives() {
             livesDisplay.querySelectorAll('.heart').forEach((h, i) => {

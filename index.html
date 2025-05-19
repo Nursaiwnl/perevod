@@ -3610,7 +3610,7 @@ let leaderboard = [];
 // Функция для загрузки лидерборда с GitHub
 async function loadLeaderboard() {
     try {
-        const res = await fetch('https://your-server.com/leaderboard');
+        const res = await fetch('https://leaderboard-server-6tfz.onrender.com');
         leaderboard = await res.json();
         updateLeaderboardUI();
     } catch (e) {
@@ -3623,7 +3623,7 @@ async function loadLeaderboard() {
 // Функция для сохранения результата
 async function saveScore(name, score) {
     try {
-        await fetch('https://your-server.com/save-score', {
+        await fetch('https://leaderboard-server-6tfz.onrender.com, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, score })
